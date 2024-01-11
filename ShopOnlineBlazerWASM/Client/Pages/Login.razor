@@ -1,0 +1,43 @@
+﻿@page "/login"
+@inject NavigationManager _navManager;
+@inject HttpClient _httpClient;
+@inject IJSRuntime _jsRuntime;
+@inject AuthenticationStateProvider _authStateProvider;
+@using ShopOnlineBlazerWASM.Client.Authentication;
+@using System.Net;
+
+<EditForm Model="@loginRequest" OnSubmit="@HandleSubmit">
+    <div style="width: 300px; margin: auto; padding: 20px; border: 1px solid #ccc; border-radius: 5px; background-color: #f9f9f9;">
+        <h2>Login</h2>
+        <div class="form-group">
+            <label for="username">Username:</label>
+            <InputText id="username" @bind-Value="loginRequest.UserName" class="form-control" placeholder="Enter username" />
+        </div>
+        <div class="form-group">
+            <label for="password">Password:</label>
+            <InputText id="password" @bind-Value="@loginRequest.Password" class="form-control" placeholder="Enter password" type="password" />
+        </div>
+        <button type="submit" class="btn btn-primary">Login</button>
+    </div>
+</EditForm>
+
+@code {
+    private LoginRequest loginRequest = new LoginRequest();
+
+    private async void HandleSubmit()
+    {
+        var loginResponse = await _httpClient.PostAsJsonAsync<LoginRequest>("api/Account/login", loginRequest);
+        if(loginResponse.IsSuccessStatusCode)
+        {
+            var userSession = await loginResponse.Content.ReadFromJsonAsync<UserSession>();
+            var customStateProvider = (CustomAuthenticationStateProvider)_authStateProvider;
+            await customStateProvider.UpdateAuthenticationState(userSession);
+            _navManager.NavigateTo("/", true);
+        }
+        else if(loginResponse.StatusCode==HttpStatusCode.Unauthorized)
+        {
+            await _jsRuntime.InvokeVoidAsync("alert", "Invalid Username or Password");
+            return;
+        }
+    }
+}

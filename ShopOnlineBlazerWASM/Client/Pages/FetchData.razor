@@ -1,0 +1,90 @@
+﻿@page "/fetchdata"
+@attribute [Authorize(Roles = "Administrator")]
+
+@using ShopOnlineBlazerWASM.Shared
+@inject HttpClient Http
+@inherits ProductBase
+
+
+@if (Product == null)
+{
+    <DisplaySpinner></DisplaySpinner>
+}
+else
+{
+    <h3 class="mb-5">Products</h3>
+    var productCount = Product.Count();
+    @if (productCount > 0)
+    {
+        @foreach (var prodGroup in GetGroupedProductsByCategory())
+        {
+            <h3>@GetCategoryName(prodGroup)</h3>
+
+            <div class="row mt-3">
+
+                <DisplayProducts Products="@prodGroup"></DisplayProducts>
+
+            </div>
+            <hr class="mb-3" />
+        }
+    }
+    else
+    {
+        <p>No products available.</p>
+    }
+}
+
+@*
+<PageTitle>Weather forecast</PageTitle>
+
+<h1>Weather forecast</h1>
+
+<p>This component demonstrates fetching data from the server.</p>
+
+@if (forecasts == null)
+{
+    <p><em>Loading...</em></p>
+}
+else
+{
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Date</th>
+                <th>Temp. (C)</th>
+                <th>Temp. (F)</th>
+                <th>Summary</th>
+                <th>Select</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var forecast in forecasts)
+            {
+                <tr>
+                    <td>@forecast.Date.ToShortDateString()</td>
+                    <td>@forecast.TemperatureC</td>
+                    <td>@forecast.TemperatureF</td>
+                    <td>@forecast.Summary</td>
+                    <td>
+                        <input type="checkbox" @onchange="checkboxchecked" >
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+@code {
+    private WeatherForecast[]? forecasts;
+    [Parameter]
+    public EventCallback<bool> ISEmployeeChecked { get; set; }
+    protected override async Task OnInitializedAsync()
+    {
+        forecasts = await Http.GetFromJsonAsync<WeatherForecast[]>("WeatherForecast");
+    }
+    protected void checkboxchecked(ChangeEventArgs e)
+    {
+        ISEmployeeChecked.InvokeAsync((bool)e.Value);
+    }
+}
+*@

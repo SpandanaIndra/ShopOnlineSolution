@@ -1,0 +1,102 @@
+﻿@page "/test/{Id}"
+<h3>Test</h3>
+<h1>Hello @Id</h1>
+<hr />
+<Component1></Component1>
+@if (Categories != null && Categories.Any())
+{
+    // Use CategoryDto safely here
+
+    <div>
+        <EditForm Model="ProdCategory">
+            <label for="productcategory">Product Category</label>
+            <InputSelect id="productcategory" @bind-Value="ProdCategory.Id">
+                @foreach (var category in Categories)
+                {
+                    <option value="category.Id">@category.Name</option>
+                }
+            </InputSelect>
+            <label for="gender">Gender</label>
+            <InputSelect id="gender" @bind-Value="ProdCategory.Gender">
+                @foreach (var gender in Enum.GetValues(typeof(Gender)))
+                {
+                    <option value="gender">@gender</option>
+                }
+            </InputSelect>
+            <label for="date">DOB :</label>
+
+            <InputDate id="date" @bind-Value="ProdCategory.DOB">
+              
+            </InputDate>
+        </EditForm>
+    </div>
+}
+<input type="text"  @bind="Name" @oninput="ChangeInput" />
+<div>
+    @Name
+</div>
+<input type="text" @bind="Name" @bind:event="oninput" /><br />
+<textarea @bind="Description" @bind:event="oninput"/>
+<div>
+   Count: @Description.Length
+</div>
+<div>
+    Number of employees selected : @Count
+</div>
+<div>
+    <FetchData ISEmployeeChecked="IsChecked"></FetchData>
+</div>
+<div>
+    <a class="btn btn-primary m-1" href="/">GotoHome</a>
+</div>
+
+
+
+@code {
+    [Inject]
+    public IProductService ProductService { get; set; }
+    [Parameter]
+    public string Id { get; set; } 
+    public string Name { get; set; } = "Spandana";
+    public string Description { get; set; } = string.Empty;
+    private ProductCategoryDto ProdCategory { get; set; } = new ProductCategoryDto(); // Initialize an instance
+    public IEnumerable<ProductCategoryDto> Categories { get; set; }
+
+
+    protected override async Task OnInitializedAsync()
+    {
+        Categories = await ProductService.GetProductCategories();
+        // Find and select the category by Id
+        if (Categories != null && Categories.Any())
+        {
+            int id;
+            if (int.TryParse(Id, out id))
+            {
+                ProdCategory = Categories.FirstOrDefault(c => c.Id == id);
+            }
+        }
+    }
+
+
+
+    int Count = 0;
+    void IsChecked(bool check)
+    {
+        if(check)
+        {
+            Count++;
+        }
+        else
+        {
+            Count--;
+        }
+    }
+    void ChangeInput(ChangeEventArgs e)
+    {
+          Name = e.Value.ToString(); 
+    }
+
+   
+
+
+}
